@@ -3,16 +3,6 @@ provider "aws" {
   profile = "default"
  }
 
-#Create a VPC
-#resource "aws_vpc" "my_vpc" {
-#  cidr_block           = var.vpc_cidr
-#  enable_dns_hostnames = true
-
-# tags = {
-#  name = "MY-VPC-POC-DMA01"
-# }
-#}
-
 #Get a list of available zone in current region
 
 data "aws_availability_zones" "all" {}
@@ -28,29 +18,6 @@ resource "aws_subnet" "public_ap_south_1c" {
   name = "MY-AG-POC-PUBLIC-SUBNET02"
  }
 }
-
-#Create an IGW for your new VPC
-#resource "aws_internet_gateway" "my_vpc_igw" {
-#  vpc_id     = aws_vpc.my_vpc.id
-
-# tags = {
-#  name  = "MY-IGW-AG-POC-DMA01"
-# }
-#}
-
-#Create an RouteTable for your VPC
-#resource "aws_route_table" "my_vpc_public" {
-# vpc_id  = aws_vpc.my_vpc.id
-
-# route  {
-#   cidr_block  = "0.0.0.0/0"
-#   gateway_id  = aws_internet_gateway.my_vpc_igw.id
-#  }
-
-# tags = {
-#  name = "MY-DEMO-RT-POC-DMA01"
-# }
-#}
 
 # Associate the Routetable to the Subnet
 resource "aws_route_table_association" "my_vpc_ap_east_1a_public" {
