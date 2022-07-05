@@ -180,46 +180,6 @@ resource "aws_eks_node_group" "node" {
   subnet_ids      = aws_subnet.demonode[*].id
 
 
-#  scaling_config {
-#    desired_size = 2
-#    max_size     = 2
-#    min_size     = 2
-# }
-
- # launch_template {
- #  name = aws_launch_template.your_eks_launch_template.name
- #  version = aws_launch_template.your_eks_launch_template.latest_version
- # }
-#  depends_on = [
-#    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
-#    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
-#    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
-#  ]
-# }
-
-#resource "aws_launch_template" "your_eks_launch_template" {
-#  name = "your_eks_launch_template"
-#  vpc_security_group_ids = ["${aws_security_group.eks-cluster.id}"]
-#
-#    block_device_mappings {
-#    device_name = "EKS-NODE"
-#    ebs {
-#      volume_size = 50
-#      volume_type = "gp2"
-#    }
-#  }
-# image_id = "ami-0729e439b6769d6ab"
-# instance_type = "t3.medium"
-# key_name = "newpemkey"
-#
-#  tags = {
-#      Name = "EKS-MANAGED-NODE"
-#    }
-# }
-#output "available_zones" {
-#  value = data.aws_availability_zones.available.names
-#}
-
   scaling_config {
     desired_size = 2
     max_size     = 2
