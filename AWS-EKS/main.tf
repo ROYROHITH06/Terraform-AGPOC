@@ -76,6 +76,7 @@ resource "aws_subnet" "demo" {
   tags = {
     name = "MY-AG-POC-PUBLIC-SUBNETs"
  }
+}
 
 resource "aws_route_table_association" "demo" {
   count = 2
