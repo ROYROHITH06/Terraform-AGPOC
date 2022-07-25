@@ -40,8 +40,7 @@ resource "aws_iam_role_policy_attachment" "eks-cluster-AmazonEKSServicePolicy" {
 resource "aws_security_group" "eks-cluster" {
   name        = "AGPOC-SG-eks-cluster"
   vpc_id      = "vpc-00cc4a2a6875a2349"
-
-# Egress allows Outbound traffic from the EKS cluster to the  Internet
+  # Egress allows Outbound traffic from the EKS cluster to the  Internet
 
   egress {                   # Outbound Rule
     from_port   = 0
@@ -90,7 +89,7 @@ data "aws_availability_zones" "all_zones" {}
 #Create Subnet for Node
 
 resource "aws_subnet" "demonode" {
-  count = 2
+  count = 6
 
   availability_zone = data.aws_availability_zones.all_zones.names[count.index]
   cidr_block        = "10.180.${count.index+6}.0/24"
@@ -103,7 +102,7 @@ resource "aws_subnet" "demonode" {
 }
 
 resource "aws_route_table_association" "demonode" {
-  count = 2
+  count = 6
 
   subnet_id      = aws_subnet.demonode.*.id[count.index]
   route_table_id = "rtb-00a4d1a8a4666325d"
@@ -176,30 +175,25 @@ resource "aws_eks_node_group" "node" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "node_group1"
   node_role_arn   = aws_iam_role.eks_nodes.arn
- #subnet_ids      = ["{aws_subnet.my_subnets02_eks.id}", "{aws_subnet.my_subnets04_eks.id}"]
- #subnet_ids     = ["{aws_subnet.demo01.id}", "{aws_subnet.demo02.id}"]
   subnet_ids      = aws_subnet.demonode[*].id
 
-
   scaling_config {
-    desired_size = 2
-    max_size     = 2
+    desired_size = 6
+    max_size     = 6
     min_size     = 2
  }
 
   ami_type       = "AL2_x86_64"
   instance_types = ["t3.micro"]
   capacity_type  = "ON_DEMAND"
-  disk_size      = 50
+  disk_size      = 30
 
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
- }
-
-output "available_zones" {
-  value = data.aws_availability_zones.available.names
- }
-
+  tags = {
+      Name = "eks-node"
+   }
+}
