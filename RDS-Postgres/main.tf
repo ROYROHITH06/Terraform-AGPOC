@@ -24,8 +24,9 @@ resource "aws_subnet" "mysubnet01" {
 
 resource "aws_route_table_association" "intranet" {
    subnet_id = "${aws_subnet.mysubnet01.id}"
-   route_table_id = "rtb-09a5d3c7ecc6e3e26"
+   route_table_id = "rtb-00a4d1a8a4666325d"
 }
+
 
 resource "aws_subnet" "mysubnet02" {
   vpc_id = "vpc-00cc4a2a6875a2349"
@@ -35,9 +36,8 @@ resource "aws_subnet" "mysubnet02" {
 
 resource "aws_route_table_association" "intranet1" {
    subnet_id = "${aws_subnet.mysubnet02.id}"
-   route_table_id = "rtb-09a5d3c7ecc6e3e26"
+   route_table_id = "rtb-00a4d1a8a4666325d"
 }
-
 
 resource "aws_db_subnet_group" "db_subnet" {
   name = "mysubnet01"
@@ -57,17 +57,11 @@ resource "aws_db_instance" "default01" {
   publicly_accessible  = true
   multi_az             = false
   db_subnet_group_name = "${aws_db_subnet_group.db_subnet.name}"
- # db_subnet_group_name = var.subnet_group
- # parameter_group_name = var.parameter_group
-# vpc_security_group_ids   = ["${aws_security_group.mydb2.id}"]
   vpc_security_group_ids   = [aws_security_group.mydb2.id]
-
 
 # Local-exec provisioner
 
 provisioner "local-exec" {
    command  = "echo ${aws_db_instance.default01.endpoint}/${aws_db_instance.default01.name} >> endpoint.txt"
-#  command =  "sed '3ispring.datasource.url=jdbc:postgresql://${aws_db_instance.default01.endpoint}/${aws_db_instance.default01.name}' endpoint.txt" > endpoint.txt.tmp && "cp endpoint.txt.tmp endpoint.txt"
  }
 }
-
