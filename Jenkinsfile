@@ -16,6 +16,7 @@ pipeline {
   stages {
     stage("Checkout_LSCP_repo") {
         steps {
+          sh 'rm -rf *'    
           sh 'mkdir -p devops'
           dir("devops"){
           checkout([$class: 'GitSCM', branches: [[name: '*/${LSCP_BRANCH}']], extensions: [],
@@ -119,9 +120,73 @@ pipeline {
             }
         } 
     }
-    
+       stage("Docker_Image_Push") {
+		when { expression { params.MSBRANCH == "main" } }
+		steps {  
+		    sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 700080035327.dkr.ecr.us-east-1.amazonaws.com' 
+            script {
+                switch(params.MS_GIT_REPO) {
+                    case "MS-CEX": sh ''' docker push 700080035327.dkr.ecr.us-east-1.amazonaws.com/lscp-mscex-poc-01:${BUILD_NUMBER} ''' ; break
+                    case "MS-Eureka": sh ''' docker push 700080035327.dkr.ecr.us-east-1.amazonaws.com/lscp-mseureka-poc-01:${BUILD_NUMBER} ''' ; break
+                    case "MS-Forex": sh ''' docker push 700080035327.dkr.ecr.us-east-1.amazonaws.com/lscp-msforex-poc:${BUILD_NUMBER} ''' ; break				
+                }
+            }    
+        }
+        /*post {
+          failure {
+            sh 'return'
+            emailext attachLog: true, body: "${JOB_NAME} - Docker Push Failed - ${BUILD_NUMBER}", subject: 'Pipeline Failed', to: "${DevOps}"
+          }
+        }*/	
+	}   
 
-} 
+       stage("update_yml_file") {
+		when { expression { params.MSBRANCH == "main" } }
+		steps {  
+		    dir("devops") { 
+            script {		  
+                switch(params.MS_GIT_REPO) {
+                    case "MS-CEX": sh ''' 
+                       chmod 777 currencyexc.sh
+                       sh -x deploy.sh ${BUILD_NUMBER}
+                       cat deploymentservicecex.yml
+					''' ; break
+					case "MS-Eureka": sh ''' 					
+                       chmod 777 eureka.sh
+                       sh -x deploy.sh ${BUILD_NUMBER}
+                       cat deploymentserviceeureka.yml
+					''' ; break
+					case "MS-Forex": sh '''					
+                       chmod 777 forex.sh
+                       sh -x forex.sh ${BUILD_NUMBER}
+                       cat deploymentserviceforex.yml
+					''' ; break				
+                }	  
+            }
+        }
+    }
+}
+    
+       stage("Deploying_to_EKS") {
+		when { expression { params.MSBRANCH == "main" } }
+		steps {  
+		    dir("devops") {//sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 700080035327.dkr.ecr.us-east-1.amazonaws.com' 
+            script {
+                switch(params.MS_GIT_REPO) {
+                    case "MS-CEX": kubernetesDeploy(configs: "deploymentservicecex.yml", kubeconfigId: "kubernetes_msce") ; break
+                    case "MS-Eureka": kubernetesDeploy(configs: "deploymentserviceeureka.yml", kubeconfigId: "kubernetes_msce") ; break
+                    case "MS-Forex": kubernetesDeploy(configs: "deploymentserviceforex.yml", kubeconfigId: "kubernetes_msce") ; break				
+                }
+            }    
+        }
+	}    
+        /*post {
+          failure {
+            sh 'return'
+            emailext attachLog: true, body: "${JOB_NAME} - Docker Push Failed - ${BUILD_NUMBER}", subject: 'Pipeline Failed', to: "${DevOps}"
+          }
+        }*/	
+	}    
      
     post {
          always {
